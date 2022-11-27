@@ -20,11 +20,20 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const categorycollection = client.db("Bikershut").collection("Categories");
+    const usersCollections = client.db("Bikershut").collection("Users");
     app.get("/categories", async (req, res) => {
       const query = {};
       const cursor = categorycollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
+
+
+      app.post("/users", async (req, res) => {
+        const user = req.body;
+        // console.log(user);
+        const result = await usersCollections.insertOne(user);
+        res.send(result);
+      });
     });
   } 
   finally {
