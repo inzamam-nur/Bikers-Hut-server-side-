@@ -18,7 +18,7 @@ const client = new MongoClient(uri, {
 });
 
 function verifyJWT(req, res, next) {
-   console.log("token", req.headers.authorization);
+  console.log("token", req.headers.authorization);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).send("Unauthorized ");
@@ -37,6 +37,7 @@ async function run() {
   try {
     const categorycollection = client.db("Bikershut").collection("Categories");
     const allusersCollections = client.db("Bikershut").collection("Users");
+    const allproductsCOllection = client.db("Bikershut").collection("Products");
 
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
@@ -54,23 +55,26 @@ async function run() {
     });
     app.get("/categories", async (req, res) => {
       const query = {};
-     console.log(query)
       const result = await categorycollection.find(query).toArray();
       res.send(result);
-      console.log(result)
     });
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
       const result = await allusersCollections.insertOne(user);
       res.send(result);
+    });
 
-   
-      app.get("/users", async (req, res) => {
-        const query = {};
-        const users = await allusersCollections.find(query).toArray();
-        res.send(users);
-      });
+    app.get("/products/:name", async (req, res) => {
+      const name = req.params.name;
+      const query = { category: name };
+      const result = await allproductsCOllection.find(query).toArray();
+      res.send(result);
+  
+    });
+    app.get("/products", async (req, res) => {
+      const query = {};
+      const result = await allproductsCOllection.find(query).toArray();
+      res.send(result);
     });
   } finally {
   }
