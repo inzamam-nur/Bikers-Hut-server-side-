@@ -17,26 +17,62 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+   console.log("token", req.headers.authorization);
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send("Unauthorized ");
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     const categorycollection = client.db("Bikershut").collection("Categories");
-    const usersCollections = client.db("Bikershut").collection("Users");
+    const allusersCollections = client.db("Bikershut").collection("Users");
+
+    app.get("/jwt", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+
+      const user = await allusersCollections.findOne(query);
+      // console.log(user);
+      if (user) {
+        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+          expiresIn: "1d",
+        });
+        return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: "forbidden" });
+    });
     app.get("/categories", async (req, res) => {
       const query = {};
-      const cursor = categorycollection.find(query);
-      const result = await cursor.toArray();
+     console.log(query)
+      const result = await categorycollection.find(query).toArray();
+      res.send(result);
+      console.log(result)
+    });
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const result = await allusersCollections.insertOne(user);
       res.send(result);
 
-
-      app.post("/users", async (req, res) => {
-        const user = req.body;
-        // console.log(user);
-        const result = await usersCollections.insertOne(user);
-        res.send(result);
+   
+      app.get("/users", async (req, res) => {
+        const query = {};
+        const users = await allusersCollections.find(query).toArray();
+        res.send(users);
       });
     });
-  } 
-  finally {
+  } finally {
   }
 }
 run().catch((err) => console.error(err));
