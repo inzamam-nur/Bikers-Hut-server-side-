@@ -69,7 +69,6 @@ async function run() {
       const query = { category: name };
       const result = await allproductsCOllection.find(query).toArray();
       res.send(result);
-  
     });
  
   } finally {
