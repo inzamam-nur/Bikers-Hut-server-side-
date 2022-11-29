@@ -39,7 +39,6 @@ async function run() {
     const allusersCollections = client.db("Bikershut").collection("Users");
     const allproductsCOllection = client.db("Bikershut").collection("Products");
     const BookingCollection = client.db("Bikershut").collection("booking");
-  
 
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
@@ -75,12 +74,19 @@ async function run() {
     app.get("/usersRole/:email", async (req, res) => {
       const email = req.params.email;
       const user = await allusersCollections.findOne({ email });
-      const userType = user?.role;
-      res.send({ userType });
+      const usersRole = user?.role;
+      res.send({ usersRole });
     });
     app.post("/booking", async (req, res) => {
       const bookings = req.body;
       const result = await BookingCollection.insertOne(bookings);
+      res.send(result);
+    });
+    app.post("/products", async (req, res) => {
+      const products = req.body;
+      console.log(products);
+
+      const result = await allproductsCOllection.insertOne(products);
       res.send(result);
     });
   } finally {
