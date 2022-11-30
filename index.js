@@ -70,7 +70,6 @@ async function run() {
       const result = await allproductsCOllection.find(query).toArray();
       res.send(result);
     });
-  
 
     app.get("/usersTypes/:email", async (req, res) => {
       const email = req.params.email;
@@ -79,7 +78,7 @@ async function run() {
       console.log(userType);
       res.send({ userType });
     });
- 
+
     app.post("/booking", async (req, res) => {
       const bookings = req.body;
       const result = await BookingCollection.insertOne(bookings);
@@ -97,10 +96,81 @@ async function run() {
       const seller = await allproductsCOllection.find(query).toArray();
       res.send(seller);
     });
-    app.get("/allsellers/:role", async (req, res) => {
-      const role = req.params.role;
-      const query = { role: role };
-      const seller = await allusersCollections.find(query).toArray();
+
+
+
+    app.delete("/myproducts/:id([0-9a-fA-F]{24})", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await allproductsCOllection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/allseller", async (req, res) => {
+      const email = req.query.email;
+
+      const isAdmin = await allusersCollections.findOne({
+        email: req.query.email,
+      });
+      // console.log(isAdmin);
+      const sellerType = req.query.type;
+
+      if (sellerType === "seller") {
+        const seller = await allusersCollections
+          .find({ role: "seller" })
+          .toArray();
+        res.send(seller);
+      }
+    });
+    app.get("/allbuyer", async (req, res) => {
+      const email = req.query.email;
+
+      const isAdmin = await allusersCollections.findOne({
+        email: req.query.email,
+      });
+      const sellerType = req.query.type;
+      if (sellerType === "buyer") {
+        const buyer = await allusersCollections
+          .find({ role: "buyer" })
+          .toArray();
+        res.send(buyer);
+      }
+    });
+    app.delete("/deleteUser", async (req, res) => {
+      const userId = req.body._id;
+      const type = req.query.type;
+      console.log(type);
+      if (type === "buyer") {
+        const buyer = await allusersCollections.deleteOne({
+          _id: ObjectId(userId),
+        });
+        res.send(buyer);
+        console.log(buyer);
+      }
+      if (type === "seller") {
+        const seller = await allusersCollections.deleteOne({
+          _id: ObjectId(userId),
+        });
+        res.send(seller);
+      }
+    });
+    app.delete("/deleteUser", async (req, res) => {
+      const userId = req.body._id;
+      const type = req.query.type;
+      if (type === "seller") {
+        const seller = await allusersCollections.deleteOne({
+          _id: ObjectId(userId),
+        });
+        res.send(seller);
+      }
+    });
+
+    app.delete("/deleteproduct", async (req, res) => {
+      const userId = req.body._id;
+      const type = req.query.type;
+      const seller = await allusersCollections.deleteOne({
+        _id: ObjectId(userId),
+      });
       res.send(seller);
     });
   } finally {
