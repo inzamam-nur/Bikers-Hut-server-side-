@@ -18,7 +18,6 @@ const client = new MongoClient(uri, {
 });
 
 function verifyJWT(req, res, next) {
-  console.log("token", req.headers.authorization);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).send("Unauthorized ");
@@ -75,7 +74,6 @@ async function run() {
       const email = req.params.email;
       const user = await allusersCollections.findOne({ email });
       const userType = user?.role;
-      console.log(userType);
       res.send({ userType });
     });
 
@@ -96,8 +94,32 @@ async function run() {
       const seller = await allproductsCOllection.find(query).toArray();
       res.send(seller);
     });
+    // app.get("/myorders/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const seller = await BookingCollection.find(query).toArray();
+    //   res.send(seller);
+    // });
 
 
+    app.get("/myorders/:email", verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+      if (decoded.email !== req.query.email) {
+        res.status(403).send("Forbidden Email ");
+      }
+
+      let query = {};
+      if (req.query.email) {
+        query = {
+          email: req.query.email,
+        };
+      }
+
+      const cursor = BookingCollection.find(query);
+      const myorders = await cursor.toArray();
+      res.send(reviews);
+
+    });
 
     app.delete("/myproducts/:id([0-9a-fA-F]{24})", async (req, res) => {
       const id = req.params.id;
@@ -112,7 +134,6 @@ async function run() {
       const isAdmin = await allusersCollections.findOne({
         email: req.query.email,
       });
-      // console.log(isAdmin);
       const sellerType = req.query.type;
 
       if (sellerType === "seller") {
@@ -139,13 +160,11 @@ async function run() {
     app.delete("/deleteUser", async (req, res) => {
       const userId = req.body._id;
       const type = req.query.type;
-      console.log(type);
       if (type === "buyer") {
         const buyer = await allusersCollections.deleteOne({
           _id: ObjectId(userId),
         });
         res.send(buyer);
-        console.log(buyer);
       }
       if (type === "seller") {
         const seller = await allusersCollections.deleteOne({
