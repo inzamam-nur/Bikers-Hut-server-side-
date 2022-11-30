@@ -45,7 +45,6 @@ async function run() {
       const query = { email: email };
 
       const user = await allusersCollections.findOne(query);
-      // console.log(user);
       if (user) {
         const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
           expiresIn: "1d",
@@ -71,12 +70,16 @@ async function run() {
       const result = await allproductsCOllection.find(query).toArray();
       res.send(result);
     });
-    app.get("/usersRole/:email", async (req, res) => {
+  
+
+    app.get("/usersTypes/:email", async (req, res) => {
       const email = req.params.email;
       const user = await allusersCollections.findOne({ email });
-      const usersRole = user?.role;
-      res.send({ usersRole });
+      const userType = user?.role;
+      console.log(userType);
+      res.send({ userType });
     });
+ 
     app.post("/booking", async (req, res) => {
       const bookings = req.body;
       const result = await BookingCollection.insertOne(bookings);
@@ -84,10 +87,21 @@ async function run() {
     });
     app.post("/products", async (req, res) => {
       const products = req.body;
-      console.log(products);
 
       const result = await allproductsCOllection.insertOne(products);
       res.send(result);
+    });
+    app.get("/myproducts/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const seller = await allproductsCOllection.find(query).toArray();
+      res.send(seller);
+    });
+    app.get("/allsellers/:role", async (req, res) => {
+      const role = req.params.role;
+      const query = { role: role };
+      const seller = await allusersCollections.find(query).toArray();
+      res.send(seller);
     });
   } finally {
   }
